@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/types.h>//»ù±¾ÏµÍ³Êı¾İÀàĞÍ
+#include <sys/types.h>//åŸºæœ¬ç³»ç»Ÿæ•°æ®ç±»å‹
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -19,79 +19,80 @@
 #define BUFFER_SIZE 256
 
 #define ECHO_PORT 2333
+#define SERVICE_ADD "192.168.1.66"
 
 struct Payload
 {
-    char uid;
-    short vL1;
-    short vR1;
-    short vL2;
-    short vR2;
-    short vL3;
-    short vR3;
+	char uid;
+	short vL1;
+	short vR1;
+	short vL2;
+	short vR2;
+	short vL3;
+	short vR3;
 };
 
 struct msgHdr
 {
-    char head0;
-    char head1;
-    char len;
-    struct Payload payload;
-    char checksum;
+	char head0;
+	char head1;
+	char len;
+	struct Payload payload;
+	char checksum;
 };
 
 //char command1={0x09,0x1d,0x0d,0x06,0x00,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x86};
 //char command2={0x09,0x1d,0x0d,0x06,0xFF,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x86};
-    //#¿¿
-char    s[] = {0x09,0x1d,0x0d,0x06,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x06};
-    //#¿¿
-char    f[] = {0x09,0x1d,0x0d,0x06,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x06};
+	//#stop
+char    s[] = { 0x09,0x1d,0x0d,0x06,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x06 };
+//#forward
+char    f[] = { 0x09,0x1d,0x0d,0x06,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x00,0x80,0x06 };
 
 
-    //#¿¿
-char    b[] = {0x09,0x1d,0x0d,0x06,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0x06};
-
-char    l[] = {0x09,0x1d,0x0d,0x06,0xFF,0x80,0x00,0x80,0x00,0x00,0x00,0x00,0xFF,0x80,0x00,0x80,0x06};
+//#back
+char    b[] = { 0x09,0x1d,0x0d,0x06,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0xFF,0x80,0x06 };
+//left
+char    l[] = { 0x09,0x1d,0x0d,0x06,0xFF,0x80,0x00,0x80,0x00,0x00,0x00,0x00,0xFF,0x80,0x00,0x80,0x06 };
 
 
 
 int main(int argc, char **argv)
 {
-	int sockfd = -1 ;
+	int sockfd = -1;
 	int opt = 1;
 	struct sockaddr_in cliaddr;
 	uint8_t buffer[BUFFER_SIZE];
 	int sendbytes = 0;
-	int ret = -1,num=-1;
+	int ret = -1, num = -1;
 	struct hostent *host;
 	struct sockaddr_in serv_addr;
 	struct 	msgHdr forward;
-	if(argc < 2){
-		fprintf(stderr,"Please enter the server's hostname!\n");
+	if (argc < 2) {
+		fprintf(stderr, "Please enter the server's hostname!\n");
 		exit(1);
 	}
 
-	/*ÔÚÕâÀï½èÖúgethostbynameº¯Êı£¬½«Ä¿µÄÖ÷»úµÄIP µØÖ·(×Ö·û´®ÀàĞÍ) ×ª»¯ÎªIPµØÖ·(ËÄ×Ö½Ú´óĞ¡)*/
-	host=gethostbyname(argv[1]);
+	/*åœ¨è¿™é‡Œå€ŸåŠ©gethostbynameå‡½æ•°ï¼Œå°†ç›®çš„ä¸»æœºçš„IP åœ°å€(å­—ç¬¦ä¸²ç±»å‹) è½¬åŒ–ä¸ºIPåœ°å€(å››å­—èŠ‚å¤§å°)*/
+	host = gethostbyname(argv[1]);
 	//host = 0x11111111;
-	
-	
-	if(/*"gethostbyname fail to run"*/host==NULL)
+
+
+	if (/*"gethostbyname fail to run"*/host == NULL)
 	{
-		/*´òÓ¡Ê§°ÜĞÅÏ¢*/
+		/*æ‰“å°å¤±è´¥ä¿¡æ¯*/
 		perror("gethostbyname");
 		exit(1);
 	}
 
-	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		perror("ERROR opening socket");
 		return RET_ERR;
 	}
 
 #if 0
-	/*setsockopt»á³ö´í£¬ÇëÊ¹ÓÃman setsockoptÃüÁî²é¿´º¯Êı²ÎÊıÓ¦¸ÃÈçºÎĞ´*/
-	if((ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,&opt, sizeof(opt))) < 0)
+	/*setsockoptä¼šå‡ºé”™ï¼Œè¯·ä½¿ç”¨man setsockoptå‘½ä»¤æŸ¥çœ‹å‡½æ•°å‚æ•°åº”è¯¥å¦‚ä½•å†™*/
+	if ((ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) < 0)
 	{
 		perror("ERROR setsockopt");
 		goto failed;
@@ -99,63 +100,61 @@ int main(int argc, char **argv)
 #endif
 	memset(&cliaddr, 0, sizeof(cliaddr));
 
-	/*ÌîĞ´¶Ô·½µÄIPµØÖ·¼°¶Ë¿ÚºÅ£¬²Î¿¼udp_server.cµÄÊµÏÖ£¬×¢ÒâIPµØÖ·ÊÇËÄ×Ö½Ú*/
-   	 serv_addr.sin_family = AF_INET;
+	/*å¡«å†™å¯¹æ–¹çš„IPåœ°å€åŠç«¯å£å·ï¼Œå‚è€ƒudp_server.cçš„å®ç°ï¼Œæ³¨æ„IPåœ°å€æ˜¯å››å­—èŠ‚*/
+	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = inet_addr("192.168.1.66");//IP address
 	//serv_addr.sin_addr.s_addr = host->h_addr;//IP address
-	serv_addr.sin_port = htons(ECHO_PORT);   //¶Ë¿ÚºÅ
+	serv_addr.sin_port = htons(ECHO_PORT);   //ç«¯å£å·
 
 	int tcplen = sizeof(struct sockaddr);
-	ret = connect(sockfd,(struct sockaddr *)&serv_addr, tcplen);
+	ret = connect(sockfd, (struct sockaddr *)&serv_addr, tcplen);
 
-	memset(&forward,0,sizeof(struct msgHdr));
+	memset(&forward, 0, sizeof(struct msgHdr));
 
 	forward.head0 = 0x09;
 	forward.head1 = 0x1D;
-        forward.payload.uid = 0x06;
+	forward.payload.uid = 0x06;
 
 	int len = sizeof(struct sockaddr_in);
 
-	do 
+	do
 	{
-    		printf(" please Enter Message : \n");
-		memset(buffer, 0 ,sizeof(buffer));
-    		if(fgets(buffer, sizeof(buffer) - 1, stdin) == NULL)
-    		{
-    			break;
-    		}
-			
-		/*Ê¹ÓÃsendtoº¯Êı½«´Ó¼üÅÌÊÕµ½µÄÊı¾İ·¢ËÍ¸ø¶Ô·½*/
-		//num=sendto(sockfd,buffer,strlen(buffer),0,(struct sockaddr*)&serv_addr,
-		switch(buffer[0])
+		printf(" please Enter Message : \n");
+		memset(buffer, 0, sizeof(buffer));
+		if (fgets(buffer, sizeof(buffer) - 1, stdin) == NULL)
 		{
-		    case 'f':
-		printf("forward\n");
-		num=sendto(sockfd,f,sizeof(f),0,(struct sockaddr*)&serv_addr,
-			sizeof(struct sockaddr));
-		if(num<=0)
-			perror("ERROR sendto");
-		else if(num > 0)
-			printf("num >0");
-		sleep(1);
-			break;
-		    case 'b':
-printf("back\n");
-		num=sendto(sockfd,b,sizeof(b),0,(struct sockaddr*)&serv_addr,
-			sizeof(struct sockaddr));
-		if(num<=0)
-			perror("ERROR sendto");
-		else if(num > 0)
-			printf("num >0");
-		
-
-
-		num=sendto(sockfd,b,sizeof(b),0,(struct sockaddr*)&serv_addr,
-			sizeof(struct sockaddr));
-		sleep(1);
 			break;
 		}
-	}while(num >= 0);
+
+		/*ä½¿ç”¨sendtoå‡½æ•°å°†ä»é”®ç›˜æ”¶åˆ°çš„æ•°æ®å‘é€ç»™å¯¹æ–¹*/
+		//num=sendto(sockfd,buffer,strlen(buffer),0,(struct sockaddr*)&serv_addr,
+		switch (buffer[0])
+		{
+		case 'f':
+			printf("forward\n");
+			num = sendto(sockfd, f, sizeof(f), 0, (struct sockaddr*)&serv_addr,
+				sizeof(struct sockaddr));
+			if (num <= 0)
+				perror("ERROR sendto");
+			else if (num > 0)
+				printf("num >0");
+			sleep(1);
+			break;
+		case 'b':
+			printf("back\n");
+			num = sendto(sockfd, b, sizeof(b), 0, (struct sockaddr*)&serv_addr,
+				sizeof(struct sockaddr));
+			if (num <= 0)
+				perror("ERROR sendto");
+			else if (num > 0)
+				printf("num >0");
+
+			num = sendto(sockfd, b, sizeof(b), 0, (struct sockaddr*)&serv_addr,
+				sizeof(struct sockaddr));
+			sleep(1);
+			break;
+		}
+	} while (num >= 0);
 failed:
 	close(sockfd);
 	return 0;
